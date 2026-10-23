@@ -1,0 +1,13 @@
+import pandas as pd 
+from sklearn import preprocessing
+from sklearn.linear_model import LinearRegression
+import plotly.express as px
+
+rawdf = pd.read_csv('weatherAUS.csv')
+use_sample = True
+sample_fraction = 0.1
+if use_sample:
+    df = rawdf.sample(frac=sample_fraction).copy()
+
+print(df)
+

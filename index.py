@@ -6,6 +6,7 @@ import seaborn as sns
 import plotly.graph_objects as go
 import numpy as np
 from sklearn.linear_model import LinearRegression
+from sklearn import preprocessing as pp
 
 medical = pd.read_csv('insurance.csv')
 
@@ -39,12 +40,19 @@ model.fit(sober_data[['age']],sober_data.charges)
 # print(pcharges)
 # print(model.coef_)
 # print(model.intercept_)
-
-
 smoker_codes = {'no':0,'yes':1}
 medical['smoker_code'] = medical.smoker.map(smoker_codes)
 
 print(medical['charges'].corr(medical['smoker_code']))
+enc = pp.OneHotEncoder()
+
+
+
+
+
+
+
+
 
 
 # fig = px.scatter(sober_data,x='age',y='charges',color='smoker')
