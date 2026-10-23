@@ -1,13 +1,70 @@
 import pandas as pd 
+import numpy as np 
 from sklearn import preprocessing
 from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
 import plotly.express as px
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import OneHotEncoder
 
 rawdf = pd.read_csv('weatherAUS.csv')
 use_sample = True
 sample_fraction = 0.1
 if use_sample:
     df = rawdf.sample(frac=sample_fraction).copy()
+# print(df)
 
-print(df)
+year = pd.to_datetime(rawdf['Date']).dt.year
 
+trainvaldf,testdf = train_test_split(df,test_size=0.2,random_state=42)
+traindf,valdf = train_test_split(trainvaldf,test_size=0.25,random_state=42)
+
+traindf = df[year < 2015]
+valdf = df[year ==  2015]
+testdf = df[year > 2015]
+
+inputcols = list(traindf.columns)[1:-1]
+targetcol = 'RainTomorrow'
+
+traininputs = traindf[inputcols].copy()
+traintargets = traindf[targetcol].copy()
+
+valinputs = valdf[inputcols].copy()
+valtargets = valdf[targetcol].copy()
+
+testinputs = testdf[inputcols].copy()
+testtargets = testdf[targetcol].copy()
+
+numericcols = traininputs.select_dtypes(include=np.number).columns.tolist()
+categoricalcols =traininputs.select_dtypes('object').columns.tolist()
+
+print(traininputs[numericcols].isna().sum())
+
+imputer = SimpleImputer(strategy='mean')
+imputer.fit(rawdf[numericcols])
+
+traininputs[numericcols] = imputer.transform(traininputs[numericcols])
+valinputs[numericcols] = imputer.transform(valinputs[numericcols])
+testinputs[numericcols] = imputer.transform(testinputs[numericcols])
+
+scaler = MinMaxScaler()
+scaler.fit(rawdf[numericcols])
+traininputs[numericcols] = scaler.transform(traininputs[numericcols])
+valinputs[numericcols] = scaler.transform(valinputs[numericcols])
+testinputs[numericcols] = scaler.transform(testinputs[numericcols])
+
+print(traininputs[numericcols])
+
+print(traininputs[categoricalcols])
+
+encoder = OneHotEncoder(sparse_output=False)
+encoder.fit(traininputs[categoricalcols])
+print(encoder.categories_)
+encodedcols = list(encoder.get_feature_names_out(categoricalcols))
+
+traininputs[encodedcols] = encoder.transform(traininputs[categoricalcols])
+valinputs[encodedcols] = encoder.transform(valinputs[categoricalcols])
+testinputs[encodedcols] = encoder.transform(testinputs[categoricalcols])
+
+print(list(traininputs[categoricalcols])[:-1])
